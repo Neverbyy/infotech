@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Книжный каталог</title>
+    <meta name="description" content="Каталог книг и авторов: поиск, фильтры, CRUD и отчёт ТОП-10 авторов." />
+    <script>
+      // Тему применяем до первой отрисовки, чтобы не было вспышки светлого фона.
+      try {
+        var stored = localStorage.getItem('catalog.theme')
+        if (stored === 'light' || stored === 'dark') {
+          document.documentElement.dataset.theme = stored
+        }
+      } catch (e) {
+        /* localStorage может быть недоступен */
+      }
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

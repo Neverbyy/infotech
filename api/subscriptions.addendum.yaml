@@ -1,0 +1,249 @@
+# Дополнение к book.yaml.
+#
+# В ТЗ у гостя есть право «подписка на новые книги автора» с уведомлением по SMS,
+# но в book.yaml соответствующих операций нет. Ниже — контракт, на который написан
+# фронтенд и который реализует мок (src/mocks/handlers.ts). Если на бэкенде
+# эндпоинты называются иначе, правки нужны только в src/api/index.ts.
+#
+# Ключевая особенность: у гостя нет аккаунта, поэтому идентификатором подписчика
+# выступает номер телефона в формате 7XXXXXXXXXX. Фронтенд запоминает его
+# локально, чтобы показывать актуальное состояние кнопки «Подписаться».
+#
+# Саму рассылку выполняет БЭКЕНД при создании книги (POST /books): он находит
+# подписчиков всех авторов новинки и отправляет по одному SMS на номер.
+# Ключ SMS-шлюза во фронтенд не передаётся никогда.
+#
+# Журнал уведомлений неизменяем: отправленное SMS — исторический факт. При
+# удалении книги или автора запись остаётся, но book_id / author_id становятся
+# null, чтобы клиент не строил ссылку в никуда. Имена продублированы в записи.
+
+openapi: 3.0.3
+info:
+  title: API каталога книг — подписки на авторов и SMS-уведомления
+  version: 1.1.0
+servers:
+  - url: /api/v1
+
+paths:
+  /authors/{id}/subscriptions:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      summary: Подписаться на SMS о новых книгах автора
+      description: |
+        Доступно гостям без авторизации. Повторный вызов идемпотентен.
+        Номер нормализуется к виду 7XXXXXXXXXX, поэтому +7…, 8… и 7…
+        считаются одним и тем же подписчиком.
+      tags:
+        - Подписки
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+      responses:
+        '201':
+          description: Подписка оформлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+        '200':
+          description: Подписка уже существовала
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+        '404':
+          description: Автор не найден
+        '422':
+          description: Некорректный номер телефона
+    delete:
+      summary: Отписаться от новинок автора
+      tags:
+        - Подписки
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+      responses:
+        '204':
+          description: Подписка отменена
+        '404':
+          description: Подписка не найдена
+
+  /subscriptions:
+    get:
+      summary: Подписки по номеру телефона
+      description: Возвращает список авторов, на которых подписан указанный номер.
+      tags:
+        - Подписки
+      parameters:
+        - name: phone
+          in: query
+          required: true
+          schema:
+            type: string
+            example: '79991234567'
+      responses:
+        '200':
+          description: Список подписок
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionListResponse'
+        '400':
+          description: Параметр phone не указан
+
+  /notifications:
+    get:
+      summary: Журнал отправленных SMS-уведомлений
+      description: |
+        История уведомлений о новинках для указанного номера. Нужна, чтобы
+        подписчик видел, что и когда ему отправляли, а поддержка — почему
+        SMS не дошло (поле details хранит ответ шлюза).
+      tags:
+        - Подписки
+      parameters:
+        - name: phone
+          in: query
+          required: true
+          schema:
+            type: string
+            example: '79991234567'
+      responses:
+        '200':
+          description: Список уведомлений, свежие сверху
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationListResponse'
+        '400':
+          description: Параметр phone не указан
+
+components:
+  schemas:
+    SubscriptionRequest:
+      type: object
+      required:
+        - phone
+      properties:
+        phone:
+          type: string
+          description: Номер в любом привычном виде, бэкенд нормализует к 7XXXXXXXXXX
+          example: '+7 (999) 123-45-67'
+
+    Subscription:
+      type: object
+      properties:
+        author_id:
+          type: integer
+        full_name:
+          type: string
+        phone:
+          type: string
+          example: '79991234567'
+        subscribed_at:
+          type: string
+          format: date-time
+
+    SmsNotification:
+      type: object
+      properties:
+        id:
+          type: integer
+        phone:
+          type: string
+          example: '79991234567'
+        author_id:
+          type: integer
+          nullable: true
+          description: null, если автор удалён из каталога
+        author_name:
+          type: string
+          description: >-
+            Денормализовано: отправленное SMS не меняется задним числом,
+            даже если автора потом переименуют или удалят.
+        book_id:
+          type: integer
+          nullable: true
+          description: >-
+            null, если книга удалена. Уведомление остаётся — SMS уже отправлено, —
+            но ссылаться на несуществующую книгу нельзя. Клиент по этому полю решает,
+            рисовать ссылку или обычный текст.
+        book_title:
+          type: string
+          description: Денормализовано, чтобы запись читалась и после удаления книги
+        text:
+          type: string
+          example: 'Новинка автора Пелевин Виктор Олегович: «Круть». Книжный каталог.'
+        sent_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [sent, failed]
+        details:
+          type: string
+          description: server_id из ответа шлюза либо текст ошибки
+          example: server_id 10000
+
+    SubscriptionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          $ref: '#/components/schemas/Subscription'
+
+    Pagination:
+      type: object
+      properties:
+        total:
+          type: integer
+        page:
+          type: integer
+        per_page:
+          type: integer
+        total_pages:
+          type: integer
+
+    SubscriptionListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/Subscription'
+            pagination:
+              $ref: '#/components/schemas/Pagination'
+
+    NotificationListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/SmsNotification'
+            pagination:
+              $ref: '#/components/schemas/Pagination'

@@ -1,0 +1,108 @@
+/* Дизайн-токены. Тема переключается атрибутом data-theme на <html>. */
+
+:root {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Consolas, 'Liberation Mono', monospace;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: 1.75rem;
+  --text-3xl: 2.25rem;
+
+  --transition: 160ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Светлая тема */
+  --bg: #f6f7fb;
+  --bg-elevated: #ffffff;
+  --bg-subtle: #eef0f6;
+  --bg-inset: #f9fafc;
+
+  --text: #16181d;
+  --text-muted: #5c6272;
+  --text-faint: #8b91a1;
+  --text-inverse: #ffffff;
+
+  --border: #e0e3ec;
+  --border-strong: #c7cbd8;
+
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-soft: #eceafe;
+  --accent-text: #4338ca;
+
+  --danger: #d92d20;
+  --danger-hover: #b42318;
+  --danger-soft: #fee4e2;
+  --danger-text: #b42318;
+
+  --success: #12a150;
+  --success-soft: #dcfae6;
+  --success-text: #087443;
+
+  --warning: #b54708;
+  --warning-soft: #fef0c7;
+
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 6%);
+  --shadow-md: 0 4px 12px -2px rgb(16 24 40 / 8%), 0 2px 4px -2px rgb(16 24 40 / 5%);
+  --shadow-lg: 0 16px 32px -8px rgb(16 24 40 / 14%), 0 4px 8px -4px rgb(16 24 40 / 6%);
+
+  --focus-ring: 0 0 0 3px rgb(79 70 229 / 28%);
+
+  --header-height: 60px;
+  --container: 1200px;
+}
+
+:root[data-theme='dark'] {
+  --bg: #0e1015;
+  --bg-elevated: #171a21;
+  --bg-subtle: #1e222b;
+  --bg-inset: #13161c;
+
+  --text: #eceef3;
+  --text-muted: #9aa1b1;
+  --text-faint: #6d7486;
+  --text-inverse: #0e1015;
+
+  --border: #272c37;
+  --border-strong: #3a4150;
+
+  --accent: #7c72f0;
+  --accent-hover: #8f86f5;
+  --accent-soft: #232043;
+  --accent-text: #b3abfb;
+
+  --danger: #f0574a;
+  --danger-hover: #f57267;
+  --danger-soft: #3a1d1c;
+  --danger-text: #fda29b;
+
+  --success: #2dbd6e;
+  --success-soft: #16301f;
+  --success-text: #75e0a7;
+
+  --warning: #f79009;
+  --warning-soft: #362713;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 50%), 0 2px 4px -2px rgb(0 0 0 / 35%);
+  --shadow-lg: 0 16px 32px -8px rgb(0 0 0 / 60%), 0 4px 8px -4px rgb(0 0 0 / 40%);
+
+  --focus-ring: 0 0 0 3px rgb(124 114 240 / 35%);
+}
